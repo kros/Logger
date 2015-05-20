@@ -1,0 +1,20 @@
+{
+   "name": "kros/logger",
+   "description" : "Basic logger.",
+	"homepage" : "https://github.com/kros/Logger",
+	"license" : "GNU Version 2",
+	"authors" : [{
+			"name" : "Oscar Ruiz",
+			"email" : "ormartin@gmail.com",
+			"homepage" : "https://github.com/kros",
+			"role" : "Developer"
+		}
+	],
+	"autoload": {
+	   "psr-4": {"Kros\\Logger\\": "src/"}
+	},
+	"keywords" : [
+		"logger",
+		"log"
+	]   
+}
