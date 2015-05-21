@@ -7,14 +7,51 @@ namespace Kros\Logger;
  *
  */
 class Logger{
+	/** File name */
 	private $fileName="";
+	
+	/** File name format
+	 * 
+	 * You can include tokens like:
+	 *    #date{format}#
+	 *    #server{$_SERVER_index_key}#
+	 *    #level#
+	 *    
+	 * @example default-#date{Ymd}#.log   ---->   default-20150621.log
+	 * @example log_#server{PHP_SELF}#.log   ---->    log_index.php.log
+	 * 
+	 */
 	private $fileNameFormat="";
+	
+	/** File name format in case no one is provided */
 	private $defaultFileNameFormat='default-#date{Ymd}#.log';
+	
+	/** 
+	 * Log format for every log entry
+	 * 
+	 * You can include tokens like:
+	 *    #date{format}#
+	 *    #server{$_SERVER_index_key}#
+	 *    #level#
+	 *    #text#
+	 *    
+	 * Remember to include the #text# token . That is the token where the log text is going to be placed.
+	*/
 	private $logFormat=null;
+	
+	/** Default log format if no one is provided */
 	private $defaultLogFormat="[#date{Y-m-d H:i:s}#]\t[#level#]\t[#server{PHP_SELF}#]\t#text#";
+	
+	/** If TRUE, the file name is calculated every time */
 	private $updateFileName;
+	
+	/** Minimun log level to register */
 	private $minLogLevel=null;
+	
+	/** Minimun log level if no one is provided */
 	private $defaultMinLogLevel="ERR";
+	
+	/** Default log level to register the log entries, if no one is provided */
 	private $defaultLogLevel="ERR";
 	
 	public function __construct($fileNameFormat=NULL, $updateFileName=FALSE){
