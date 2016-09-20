@@ -123,11 +123,10 @@ class Logger{
 		}
 		
 		//level token
-			$pattern='/#level#/';
+		$pattern='/#level#/';
 		while (preg_match_all($pattern, $res, $out)){
 			$res=str_replace($out[0][0], $level, $res);
 		}
-		var_dump($res);
 		return $res;		
 	}
 	
