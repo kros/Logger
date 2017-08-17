@@ -7,6 +7,17 @@ namespace Kros\Logger;
  *
  */
 class Logger{
+	/** log levels and priority*/
+	public static $levels=[
+		'OFF'=>0, 
+		'FATAL'=>1, 
+		'ERROR'=>2,
+		'WARN'=>3,
+		'INFO'=>4,
+		'DEBUG'=>5,
+		'TRACE'=>6,
+		'ALL'=>7
+	];
 	/** File name */
 	private $fileName="";
 	
@@ -46,24 +57,40 @@ class Logger{
 	private $updateFileName;
 	
 	/** Minimun log level to register */
-	private $minLogLevel=null;
+	private $logLevel=null;
 	
 	/** Minimun log level if no one is provided */
-	private $defaultMinLogLevel="ERR";
+	private $defaultLogLevel="ERROR";	
 	
-	/** Default log level to register the log entries, if no one is provided */
-	private $defaultLogLevel="ERR";
-	
-	public function __construct($fileNameFormat=NULL, $updateFileName=FALSE){
-		$this->updateFileName=$updateFileName;
-		if ($fileNameFormat!=NULL){
-			$this->fileNameFormat=$fileNameFormat;
-		}else{
-			$this->fileNameFormat=$this->defaultFileNameFormat;
+	/**
+	* Constuctor method.
+	*
+	* @param $props Properties array to configure logger. Available properties are:
+	*               fileNameFormat: Format of the file name.
+	*               updateFileName: Set if the file name change in time.
+	*               logLevel: Log level to trace.
+	*               logFormat: Log entry format.
+	*               fileName: File name. If provided, fileNameFormat and updateFileName are ignored.
+	*/
+	public function __construct($props=NULL){
+		if ($props==null){
+			$props=[];
+		}else if (is_string($props)){
+			$props=['fileNameFormat'=>$props];
+		}else if (!is_array($props)){
+			throw new \Exception('Wrong properties array provided');
 		}
+		$this->updateFileName=(array_key_exists('updateFileName', $props) && !array_key_exists('fileName', $props)?filter_var($props['updateFileName'], FILTER_VALIDATE_BOOLEAN):FALSE);
+		if (array_key_exists('fileName', $props)){
+			$this->fileNameFormat=$props['fileName'];
+		}else{
+			$this->fileNameFormat=(array_key_exists('fileNameFormat', $props)?$props['fileNameFormat']:$this->defaultFileNameFormat);
+		}
+		$this->setLogLevel((array_key_exists('logLevel', $props)?$props['logLevel']:$this->getLogLevel()));
+		$this->setLogFormat((array_key_exists('logFormat', $props)?$props['logFormat']:$this->getLogFormat()));
 		$this->loadLogFileName();
 	}
-	
+
 	public function setLogFormat($format){
 		$this->logFormat=$format;
 		return $this;
@@ -75,26 +102,26 @@ class Logger{
 		}
 		return $this->logFormat;
 	}
-	
-	public function setDevaultLogLevel($level){
-		$this->defaultLogLevel=$level;
-		return $this;
-	}
-	
+		
 	public function getDefaultLogLevel(){
 		return $this->defaultLogLevel;
 	}
 	
-	public function setMinLogLevel($level){
-		$this->minLogLevel=$level;
+	public function setLogLevel($level){
+		$uLevel=strtoupper($level);
+		if (!array_key_exists(strtoupper($uLevel), Logger::$levels)){
+			throw new \Exception ("Log level unknown '$uLevel'");
+		}
+
+		$this->logLevel=$uLevel;
 		return $this;
 	}
 	
-	public function getMinLogLevel(){
-		if($this->minLogLevel==null){
-			$this->minLogLevel=$this->defaultMinLogLevel;
+	public function getLogLevel(){
+		if($this->logLevel==null){
+			$this->logLevel=$this->defaultLogLevel;
 		}
-		return $this->minLogLevel;
+		return $this->logLevel;
 	}
 	
 	public function getFileName(){
@@ -135,21 +162,47 @@ class Logger{
 	}
 	
 	public function log($logText, $level=NULL){
+
+		if($level==null){
+			throw new \Exception("Log level must be provided");
+		}else{
+			$uLevel=strtoupper($level);
+			if (!array_key_exists(strtoupper($uLevel), Logger::$levels)){
+				throw new \Exception ("Log level unknown '$uLevel'");
+			}
+		}
+
+		//only write log if proper level
+		if (Logger::$levels[$level]>Logger::$levels[$this->getLogLevel()]){
+			return false;
+		}
 		if ($this->updateFileName){
 			$this->loadLogFileName();
-		}
-		
-		if($level==null){
-			$level=$this->getDefaultLogLevel();
-		}
+		}	
 		
 		$handler = fopen($this->fileName, 'a');
 		if (flock($handler, LOCK_EX)){
-			//TODO compare $level with $this->logLevel
 			fwrite($handler, $this->composeString($this->getLogFormat(),$logText, $level)."\n");
 			flock($handler, LOCK_UN);
 		}
 		fclose($handler);
+		return true;
 	} 
+	
+	/**
+	* Use any log level name as a method to log in that log level
+	*/
+	public function __call($name, $arguments){
+		$uName=strtoupper($name);
+		if (array_key_exists(strtoupper($uName), Logger::$levels)){
+			if (sizeof($arguments>0)){
+				$logText=$arguments[0];
+				$this->log($logText, $uName);
+			}
+		}else{
+			throw new \Exception ("Methond not found $name" );
+		}
+	}
 }
+
 ?>
