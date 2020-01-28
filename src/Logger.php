@@ -195,7 +195,7 @@ class Logger{
 	public function __call($name, $arguments){
 		$uName=strtoupper($name);
 		if (array_key_exists(strtoupper($uName), Logger::$levels)){
-			if (sizeof($arguments>0)){
+			if (sizeof($arguments)>0){
 				$logText=$arguments[0];
 				$this->log($logText, $uName);
 			}
