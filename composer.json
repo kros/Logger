@@ -2,7 +2,7 @@
    "name": "kros/logger",
    "description" : "Basic logger.",
 	"homepage" : "https://github.com/kros/Logger",
-	"license" : "GNU Version 2",
+	"license" : "GPL-2.0-only",
 	"authors" : [{
 			"name" : "Oscar Ruiz",
 			"email" : "ormartin@gmail.com",
