@@ -45,13 +45,15 @@ class Logger{
 	 *    #server{$_SERVER_index_key}#
 	 *    #level#
 	 *    #text#
+	 *    #file# -> fileName where log function was called
+	 *    #line# -> line numer where log function was called
 	 *    
 	 * Remember to include the #text# token . That is the token where the log text is going to be placed.
 	*/
 	private $logFormat=null;
 	
 	/** Default log format if no one is provided */
-	private $defaultLogFormat="[#date{Y-m-d H:i:s}#]\t[#level#]\t[#server{PHP_SELF}#]\t#text#";
+	private $defaultLogFormat="[#date{Y-m-d H:i:s}#]\t[#level#]\t[#file#]\t[#line#]\t#text#";
 	
 	/** If TRUE, the file name is calculated every time */
 	private $updateFileName;
@@ -154,7 +156,29 @@ class Logger{
 		while (preg_match_all($pattern, $res, $out)){
 			$res=str_replace($out[0][0], $level, $res);
 		}
+		[$file,$line]=$this->getCallerInfo();
+		//file token
+		$pattern='/#file#/';
+		while (preg_match_all($pattern, $res, $out)){
+			$res=str_replace($out[0][0], $file, $res);
+		}
+		//line token
+		$pattern='/#line#/';
+		while (preg_match_all($pattern, $res, $out)){
+			$res=str_replace($out[0][0], $line, $res);
+		}
+
 		return $res;		
+	}
+
+	private function getCallerInfo(){
+		$debug=debug_backtrace();
+		foreach($debug as $call){
+			if ($call['file']!=__FILE__){
+				return [array_pop(explode(DIRECTORY_SEPARATOR,$call['file'])), $call['line']];
+			}
+		}
+		return null;
 	}
 	
 	private function loadLogFileName(){
@@ -195,7 +219,7 @@ class Logger{
 	public function __call($name, $arguments){
 		$uName=strtoupper($name);
 		if (array_key_exists(strtoupper($uName), Logger::$levels)){
-			if (sizeof($arguments)>0){
+			if (sizeof($arguments>0)){
 				$logText=$arguments[0];
 				$this->log($logText, $uName);
 			}
