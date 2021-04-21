@@ -47,13 +47,14 @@ class Logger{
 	 *    #text#
 	 *    #file# -> fileName where log function was called
 	 *    #line# -> line numer where log function was called
+	 *    #pid# -> identificador del proceso
 	 *    
 	 * Remember to include the #text# token . That is the token where the log text is going to be placed.
 	*/
 	private $logFormat=null;
 	
 	/** Default log format if no one is provided */
-	private $defaultLogFormat="[#date{Y-m-d H:i:s}#]\t[#level#]\t[#file#]\t[#line#]\t#text#";
+	private $defaultLogFormat="[#date{Y-m-d H:i:s}#]\t[#level#]\t[PID:#pid#]\t[#file#]\t[L:#line#]\t#text#";
 	
 	/** If TRUE, the file name is calculated every time */
 	private $updateFileName;
@@ -156,6 +157,13 @@ class Logger{
 		while (preg_match_all($pattern, $res, $out)){
 			$res=str_replace($out[0][0], $level, $res);
 		}
+
+		//pid token
+		$pattern='/#pid#/';
+		while (preg_match_all($pattern, $res, $out)){
+			$res=str_replace($out[0][0], getmypid(), $res);
+		}
+
 		[$file,$line]=$this->getCallerInfo();
 		//file token
 		$pattern='/#file#/';
