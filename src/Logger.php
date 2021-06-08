@@ -183,7 +183,8 @@ class Logger{
 		$debug=debug_backtrace();
 		foreach($debug as $call){
 			if ($call['file']!=__FILE__){
-				return [array_pop(explode(DIRECTORY_SEPARATOR,$call['file'])), $call['line']];
+				$tmp = explode(DIRECTORY_SEPARATOR,$call['file']);
+				return [array_pop($tmp), $call['line']];
 			}
 		}
 		return null;
