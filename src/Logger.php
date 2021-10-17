@@ -43,6 +43,7 @@ class Logger{
 	 * You can include tokens like:
 	 *    #date{format}#
 	 *    #server{$_SERVER_index_key}#
+	 *    #env{$_ENV_index_key}#
 	 *    #level#
 	 *    #text#
 	 *    #file# -> fileName where log function was called
@@ -90,7 +91,7 @@ class Logger{
 			$this->fileNameFormat=(array_key_exists('fileNameFormat', $props)?$props['fileNameFormat']:$this->defaultFileNameFormat);
 		}
 		$this->setLogLevel((array_key_exists('logLevel', $props)?$props['logLevel']:$this->getLogLevel()));
-		$this->setLogFormat((array_key_exists('logFormat', $props)?$props['logFormat']:$this->getLogFormat()));
+		$this->setLogFormat((array_key_exists('logFormat', $props)?str_replace("\\t","\t",$props['logFormat']):$this->getLogFormat()));
 		$this->loadLogFileName();
 	}
 
@@ -144,6 +145,12 @@ class Logger{
 		$pattern='/#server{([\w]*)}#/';
 		while (preg_match_all($pattern, $res, $out)){
 			$res=str_replace($out[0][0], $_SERVER[$out[1][0]], $res);
+		}
+
+		//env token
+		$pattern='/#env{([\w]*)}#/';
+		while (preg_match_all($pattern, $res, $out)){
+			$res=str_replace($out[0][0], getenv($out[1][0]), $res);
 		}
 
 		//text token
